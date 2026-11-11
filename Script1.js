@@ -1,3 +1,27 @@
+// --- Import Firebase SDKs ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-analytics.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+
+// --- Firebase Configuration ---
+const firebaseConfig = {
+    apiKey: "AIzaSyCsbIKFvr7UKpFZbJpij8pXQ8WpXGT2l6M",
+    authDomain: "kitchen-dashboard-d808a.firebaseapp.com",
+    projectId: "kitchen-dashboard-d808a",
+    storageBucket: "kitchen-dashboard-d808a.firebasestorage.app",
+    messagingSenderId: "846662260040",
+    appId: "1:846662260040:web:142989e4d762fd01bbcf7d",
+    measurementId: "G-WNKB89ZCRZ"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getFirestore(app);
+
+// Document reference in Firestore where our app state will live
+const docRef = doc(db, "storeData", "dashboardState");
+
 // --- Authentication Logic ---
 const loginModal = document.getElementById('loginModal');
 const loginUser = document.getElementById('loginUser');
@@ -27,17 +51,14 @@ loginPass.addEventListener('keypress', function (e) {
 });
 
 
-// --- LocalStorage Persistence Helpers ---
-function saveData() {
-    localStorage.setItem('kitchen_totalAmount', JSON.stringify(totalAmount));
-    localStorage.setItem('kitchen_daysLog', JSON.stringify(daysLog));
-    localStorage.setItem('kitchen_inventory', JSON.stringify(inventory));
-    localStorage.setItem('kitchen_currentOrder', JSON.stringify(currentOrder));
-}
-
-// --- Cash Tracker & Kitchen Cash Log Logic ---
-let totalAmount = JSON.parse(localStorage.getItem('kitchen_totalAmount')) || 0;
-let daysLog = JSON.parse(localStorage.getItem('kitchen_daysLog')) || [];
+// --- State Variables ---
+let totalAmount = 0;
+let daysLog = [];
+let inventory = [
+    { id: 1, name: 'Kinder Bueno', stock: 12, cost: 0.80 },
+    { id: 2, name: 'Bottled Water', stock: 25, cost: 0.75 }
+];
+let currentOrder = [];
 
 const totalDisplay = document.getElementById('total');
 const amountInput = document.getElementById('amountInput');
@@ -53,11 +74,56 @@ const startDayBtn = document.getElementById('startDayBtn');
 const endDayBtn = document.getElementById('endDayBtn');
 const resetCashBtn = document.getElementById('resetCashBtn');
 
+const inventoryContainer = document.getElementById('inventoryContainer');
+const newItemInput = document.getElementById('newItemInput');
+const newItemCost = document.getElementById('newItemCost');
+const addItemBtn = document.getElementById('addItemBtn');
+
+const orderContainer = document.getElementById('orderContainer');
+const orderTotalDisplay = document.getElementById('orderTotal');
+const sellBtn = document.getElementById('sellBtn');
+
+// --- Sync Data to Cloud Firestore ---
+async function saveData() {
+    try {
+        await setDoc(docRef, {
+            totalAmount: totalAmount,
+            daysLog: daysLog,
+            inventory: inventory,
+            currentOrder: currentOrder
+        });
+    } catch (error) {
+        console.error("Error saving data to cloud: ", error);
+    }
+}
+
+// --- Load Data from Cloud Firestore & Listen for Real-Time Updates ---
+function initCloudSync() {
+    onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            totalAmount = data.totalAmount ?? 0;
+            daysLog = data.daysLog ?? [];
+            inventory = data.inventory ?? inventory;
+            currentOrder = data.currentOrder ?? [];
+
+            updateCashDisplay();
+            renderInventory();
+            renderOrder();
+            renderCashLog();
+            checkActiveDayState();
+        } else {
+            saveData();
+        }
+    }, (error) => {
+        console.error("Error getting live data: ", error);
+    });
+}
+
 function updateCashDisplay() {
     totalDisplay.textContent = `£${totalAmount.toFixed(2)}`;
 }
 
-// Check if there is an active day on load and adjust buttons accordingly
 function checkActiveDayState() {
     const activeDay = daysLog.find(d => d.isActive);
     if (activeDay) {
@@ -70,11 +136,11 @@ function checkActiveDayState() {
 }
 
 startDayBtn.addEventListener('click', function () {
-    const today = new Date().toLocaleDateString(undefined, {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
+    const today = new Date().toLocaleDateString(undefined, { 
+        weekday: 'short', 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
     });
 
     const activeDay = daysLog.find(d => d.isActive);
@@ -91,8 +157,6 @@ startDayBtn.addEventListener('click', function () {
     });
 
     saveData();
-    checkActiveDayState();
-    renderCashLog();
 });
 
 endDayBtn.addEventListener('click', function () {
@@ -102,11 +166,8 @@ endDayBtn.addEventListener('click', function () {
     }
 
     saveData();
-    checkActiveDayState();
-    renderCashLog();
 });
 
-// Reset Cashflows button flow
 resetCashBtn.addEventListener('click', function () {
     const u = prompt("Enter reset username:");
     if (u === null) return;
@@ -119,9 +180,6 @@ resetCashBtn.addEventListener('click', function () {
             daysLog = [];
             totalAmount = 0;
             saveData();
-            updateCashDisplay();
-            renderCashLog();
-            checkActiveDayState();
         }
     } else {
         alert("Invalid reset username or password.");
@@ -130,13 +188,13 @@ resetCashBtn.addEventListener('click', function () {
 
 function addCashLog(type, amount, detailText) {
     let activeDay = daysLog.find(d => d.isActive);
-
+    
     if (!activeDay) {
-        const today = new Date().toLocaleDateString(undefined, {
-            weekday: 'short',
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
+        const today = new Date().toLocaleDateString(undefined, { 
+            weekday: 'short', 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
         });
         activeDay = {
             id: Date.now(),
@@ -145,7 +203,6 @@ function addCashLog(type, amount, detailText) {
             logs: []
         };
         daysLog.unshift(activeDay);
-        checkActiveDayState();
     }
 
     activeDay.logs.unshift({
@@ -154,9 +211,8 @@ function addCashLog(type, amount, detailText) {
         amount: amount,
         details: detailText
     });
-
+    
     saveData();
-    renderCashLog();
 }
 
 function renderCashLog() {
@@ -222,9 +278,8 @@ addBtn.addEventListener('click', function () {
     }
 
     totalAmount += value;
-    updateCashDisplay();
     addCashLog('inflow', value, reason);
-
+    
     amountInput.value = '';
     reasonInput.value = '';
 });
@@ -243,29 +298,11 @@ subtractBtn.addEventListener('click', function () {
     }
 
     totalAmount -= value;
-    updateCashDisplay();
     addCashLog('outflow', value, reason);
-
+    
     amountInput.value = '';
     reasonInput.value = '';
 });
-
-// --- Dynamic Stock Tracker Logic ---
-let inventory = JSON.parse(localStorage.getItem('kitchen_inventory')) || [
-    { id: 1, name: 'Kinder Bueno', stock: 12, cost: 0.80 },
-    { id: 2, name: 'Bottled Water', stock: 25, cost: 0.75 }
-];
-
-let currentOrder = JSON.parse(localStorage.getItem('kitchen_currentOrder')) || [];
-
-const inventoryContainer = document.getElementById('inventoryContainer');
-const newItemInput = document.getElementById('newItemInput');
-const newItemCost = document.getElementById('newItemCost');
-const addItemBtn = document.getElementById('addItemBtn');
-
-const orderContainer = document.getElementById('orderContainer');
-const orderTotalDisplay = document.getElementById('orderTotal');
-const sellBtn = document.getElementById('sellBtn');
 
 function renderInventory() {
     inventoryContainer.innerHTML = '';
@@ -280,10 +317,10 @@ function renderInventory() {
                 <span class="item-stock">Stock: <strong>${item.stock}</strong> | Cost: £${item.cost.toFixed(2)}</span>
             </div>
             <div class="item-controls">
-                <button onclick="addToOrder(${item.id})" class="btn-order">+ Order</button>
-                <button onclick="updateStock(${item.id}, 1)" class="btn-add">+</button>
-                <button onclick="updateStock(${item.id}, -1)" class="btn-sub">-</button>
-                <button onclick="removeItem(${item.id})" class="btn-del">×</button>
+                <button onclick="window.addToOrder(${item.id})" class="btn-order">+ Order</button>
+                <button onclick="window.updateStock(${item.id}, 1)" class="btn-add">+</button>
+                <button onclick="window.updateStock(${item.id}, -1)" class="btn-sub">-</button>
+                <button onclick="window.removeItem(${item.id})" class="btn-del">×</button>
             </div>
         `;
 
@@ -310,7 +347,7 @@ function renderOrder() {
                     <span class="item-stock">Subtotal: £${itemTotal.toFixed(2)}</span>
                 </div>
                 <div class="item-controls">
-                    <button onclick="removeFromOrder(${orderItem.itemId})" class="btn-del">×</button>
+                    <button onclick="window.removeFromOrder(${orderItem.itemId})" class="btn-del">×</button>
                 </div>
             `;
             orderContainer.appendChild(orderCard);
@@ -344,13 +381,11 @@ window.addToOrder = function (itemId) {
     }
 
     saveData();
-    renderOrder();
 };
 
 window.removeFromOrder = function (itemId) {
     currentOrder = currentOrder.filter(o => o.itemId !== itemId);
     saveData();
-    renderOrder();
 };
 
 window.updateStock = function (id, change) {
@@ -359,7 +394,6 @@ window.updateStock = function (id, change) {
         item.stock += change;
         if (item.stock < 0) item.stock = 0;
         saveData();
-        renderInventory();
     }
 };
 
@@ -367,8 +401,6 @@ window.removeItem = function (id) {
     inventory = inventory.filter(i => i.id !== id);
     currentOrder = currentOrder.filter(o => o.itemId !== id);
     saveData();
-    renderInventory();
-    renderOrder();
 };
 
 addItemBtn.addEventListener('click', function () {
@@ -386,7 +418,6 @@ addItemBtn.addEventListener('click', function () {
         newItemInput.value = '';
         newItemCost.value = '';
         saveData();
-        renderInventory();
     }
 });
 
@@ -406,22 +437,37 @@ sellBtn.addEventListener('click', function () {
         orderTotalCost += itemTotal;
 
         const formattedName = orderItem.name.toLowerCase().replace(/\s+/g, '');
-        // Note: addCashLog will automatically call saveData()
-        addCashLog('inflow', itemTotal, `${orderItem.quantity}x ${formattedName}`);
+        
+        let activeDay = daysLog.find(d => d.isActive);
+        if (!activeDay) {
+            const today = new Date().toLocaleDateString(undefined, { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+            activeDay = {
+                id: Date.now(),
+                dateStr: today,
+                isActive: true,
+                logs: []
+            };
+            daysLog.unshift(activeDay);
+        }
+
+        activeDay.logs.unshift({
+            id: Date.now(),
+            type: 'inflow',
+            amount: itemTotal,
+            details: `${orderItem.quantity}x ${formattedName}`
+        });
     });
 
     totalAmount += orderTotalCost;
     currentOrder = [];
 
     saveData();
-    updateCashDisplay();
-    renderInventory();
-    renderOrder();
 });
 
-// Initial startup renderings & state checks
-updateCashDisplay();
-renderInventory();
-renderOrder();
-renderCashLog();
-checkActiveDayState();
+// Start the real-time cloud sync listener on load
+initCloudSync();

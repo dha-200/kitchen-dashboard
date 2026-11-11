@@ -31,9 +31,6 @@ const loginPass = document.getElementById('loginPass');
 const loginBtn = document.getElementById('loginBtn');
 const loginError = document.getElementById('loginError');
 
-const RESET_USER = "reset";
-const RESET_PASS = "reset@2342";
-
 loginBtn.addEventListener('click', function () {
     let u = loginUser.value.trim();
     const p = loginPass.value.trim();
@@ -188,21 +185,14 @@ endDayBtn.addEventListener('click', function () {
     saveData();
 });
 
+// Reset is protected by Firebase security rules (signed-in approved users only).
+// No client-side passwords: never store credentials in frontend code.
 resetCashBtn.addEventListener('click', function () {
-    const u = prompt("Enter reset username:");
-    if (u === null) return;
-    const p = prompt("Enter reset password:");
-    if (p === null) return;
-
-    if (u === RESET_USER && p === RESET_PASS) {
-        const confirmDelete = confirm("Are you sure you want to delete all cash data?");
-        if (confirmDelete) {
-            daysLog = [];
-            totalAmount = 0;
-            saveData();
-        }
-    } else {
-        alert("Invalid reset username or password.");
+    const confirmDelete = confirm("Are you sure you want to delete all cash data?");
+    if (confirmDelete) {
+        daysLog = [];
+        totalAmount = 0;
+        saveData();
     }
 });
 
@@ -248,16 +238,31 @@ function renderCashLog() {
             const dayBox = document.createElement('div');
             dayBox.className = 'day-box';
 
+            // Build with textContent so stored values can never inject HTML/scripts
+            const dateSpan = document.createElement('span');
+            dateSpan.textContent = `📅 ${day.dateStr}`;
             const header = document.createElement('div');
             header.className = 'day-box-header';
-            header.innerHTML = `<span>📅 ${day.dateStr}</span> ${day.isActive ? '<span style="color:#16a34a; font-size:0.75rem;">(Active)</span>' : ''}`;
+            header.appendChild(dateSpan);
+            if (day.isActive) {
+                const activeSpan = document.createElement('span');
+                activeSpan.textContent = '(Active)';
+                activeSpan.style.color = '#16a34a';
+                activeSpan.style.fontSize = '0.75rem';
+                header.appendChild(activeSpan);
+            }
             dayBox.appendChild(header);
 
             const content = document.createElement('div');
             content.className = 'day-box-content';
 
             if (day.logs.length === 0) {
-                content.innerHTML = '<p class="empty-msg" style="font-size:0.8rem; margin:0.2rem 0;">No entries for this day</p>';
+                const emptyMsg = document.createElement('p');
+                emptyMsg.className = 'empty-msg';
+                emptyMsg.style.fontSize = '0.8rem';
+                emptyMsg.style.margin = '0.2rem 0';
+                emptyMsg.textContent = 'No entries for this day';
+                content.appendChild(emptyMsg);
             } else {
                 day.logs.forEach(log => {
                     if (log.type === 'inflow') sumIn += log.amount;
@@ -267,10 +272,14 @@ function renderCashLog() {
                     entry.className = `log-entry ${log.type}`;
 
                     const sign = log.type === 'inflow' ? '+' : '-';
-                    entry.innerHTML = `
-                        <span class="log-amount">${sign}£${log.amount.toFixed(2)}</span>
-                        <span class="log-details">${log.details}</span>
-                    `;
+                    const amountSpan = document.createElement('span');
+                    amountSpan.className = 'log-amount';
+                    amountSpan.textContent = `${sign}£${Number(log.amount).toFixed(2)}`;
+                    const detailsSpan = document.createElement('span');
+                    detailsSpan.className = 'log-details';
+                    detailsSpan.textContent = log.details;
+                    entry.appendChild(amountSpan);
+                    entry.appendChild(detailsSpan);
                     content.appendChild(entry);
                 });
             }
@@ -331,19 +340,37 @@ function renderInventory() {
         const itemCard = document.createElement('div');
         itemCard.className = 'item-card';
 
-        itemCard.innerHTML = `
-            <div class="item-info">
-                <span class="item-name">${item.name}</span>
-                <span class="item-stock">Stock: <strong>${item.stock}</strong> | Cost: £${item.cost.toFixed(2)}</span>
-            </div>
-            <div class="item-controls">
-                <button onclick="window.addToOrder(${item.id})" class="btn-order">+ Order</button>
-                <button onclick="window.updateStock(${item.id}, 1)" class="btn-add">+</button>
-                <button onclick="window.updateStock(${item.id}, -1)" class="btn-sub">-</button>
-                <button onclick="window.removeItem(${item.id})" class="btn-del">×</button>
-            </div>
-        `;
+        const itemInfo = document.createElement('div');
+        itemInfo.className = 'item-info';
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'item-name';
+        nameSpan.textContent = item.name;
+        const stockSpan = document.createElement('span');
+        stockSpan.className = 'item-stock';
+        const stockLabel = document.createElement('strong');
+        stockLabel.textContent = item.stock;
+        stockSpan.append('Stock: ', stockLabel, ` | Cost: £${Number(item.cost).toFixed(2)}`);
+        itemInfo.appendChild(nameSpan);
+        itemInfo.appendChild(stockSpan);
 
+        const controls = document.createElement('div');
+        controls.className = 'item-controls';
+
+        const makeBtn = (text, className, handler) => {
+            const btn = document.createElement('button');
+            btn.textContent = text;
+            btn.className = className;
+            btn.addEventListener('click', () => handler(item.id));
+            return btn;
+        };
+
+        controls.appendChild(makeBtn('+ Order', 'btn-order', window.addToOrder));
+        controls.appendChild(makeBtn('+', 'btn-add', (id) => window.updateStock(id, 1)));
+        controls.appendChild(makeBtn('-', 'btn-sub', (id) => window.updateStock(id, -1)));
+        controls.appendChild(makeBtn('×', 'btn-del', window.removeItem));
+
+        itemCard.appendChild(itemInfo);
+        itemCard.appendChild(controls);
         inventoryContainer.appendChild(itemCard);
     });
 }
@@ -361,15 +388,28 @@ function renderOrder() {
 
             const orderCard = document.createElement('div');
             orderCard.className = 'item-card';
-            orderCard.innerHTML = `
-                <div class="item-info">
-                    <span class="item-name">${orderItem.name} (x${orderItem.quantity})</span>
-                    <span class="item-stock">Subtotal: £${itemTotal.toFixed(2)}</span>
-                </div>
-                <div class="item-controls">
-                    <button onclick="window.removeFromOrder(${orderItem.itemId})" class="btn-del">×</button>
-                </div>
-            `;
+
+            const itemInfo = document.createElement('div');
+            itemInfo.className = 'item-info';
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'item-name';
+            nameSpan.textContent = `${orderItem.name} (x${orderItem.quantity})`;
+            const subtotalSpan = document.createElement('span');
+            subtotalSpan.className = 'item-stock';
+            subtotalSpan.textContent = `Subtotal: £${itemTotal.toFixed(2)}`;
+            itemInfo.appendChild(nameSpan);
+            itemInfo.appendChild(subtotalSpan);
+
+            const controls = document.createElement('div');
+            controls.className = 'item-controls';
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = '×';
+            removeBtn.className = 'btn-del';
+            removeBtn.addEventListener('click', () => window.removeFromOrder(orderItem.itemId));
+            controls.appendChild(removeBtn);
+
+            orderCard.appendChild(itemInfo);
+            orderCard.appendChild(controls);
             orderContainer.appendChild(orderCard);
         });
     }

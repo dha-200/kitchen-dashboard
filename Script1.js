@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-analytics.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 
 // --- Firebase Configuration ---
 const firebaseConfig = {
@@ -19,8 +20,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getDatabase(app);
+const auth = getAuth(app);
 
-// Database reference where our app state will live
 const dbRef = ref(db, 'storeData/dashboardState');
 
 // --- Authentication Logic ---
@@ -30,25 +31,46 @@ const loginPass = document.getElementById('loginPass');
 const loginBtn = document.getElementById('loginBtn');
 const loginError = document.getElementById('loginError');
 
-const VALID_USER = "tuckman";
-const VALID_PASS = "tuck@2342";
-
 const RESET_USER = "reset";
 const RESET_PASS = "reset@2342";
 
 loginBtn.addEventListener('click', function () {
-    const u = loginUser.value.trim();
+    let u = loginUser.value.trim();
     const p = loginPass.value.trim();
 
-    if (u === VALID_USER && p === VALID_PASS) {
-        loginModal.style.display = 'none';
-    } else {
-        loginError.textContent = 'Invalid username or password.';
+    if (!u || !p) {
+        loginError.textContent = 'Please enter username and password.';
+        return;
     }
+
+    // Automatically format username to email if typed as 'tuckman'
+    if (!u.includes('@')) {
+        u += '@store.com';
+    }
+
+    signInWithEmailAndPassword(auth, u, p)
+        .then(() => {
+            loginError.textContent = '';
+            loginModal.style.display = 'none';
+        })
+        .catch((error) => {
+            loginError.textContent = 'Invalid username or password.';
+            console.error("Auth error: ", error);
+        });
 });
 
 loginPass.addEventListener('keypress', function (e) {
     if (e.key === 'Enter') loginBtn.click();
+});
+
+// Monitor Auth State
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        loginModal.style.display = 'none';
+        initCloudSync();
+    } else {
+        loginModal.style.display = 'flex';
+    }
 });
 
 // --- State Variables ---
@@ -466,6 +488,3 @@ sellBtn.addEventListener('click', function () {
 
     saveData();
 });
-
-// Start real-time sync
-initCloudSync();

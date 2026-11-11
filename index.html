@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Store Dashboard</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<!-- Login Overlay Modal -->
+	<div id="loginModal" class="modal-overlay">
+		<div class="modal-card">
+			<h2>Store Login</h2>
+			<p class="subtitle">Please enter your credentials to access the dashboard</p>
+			<div class="controls">
+				<input type="text" id="loginUser" placeholder="Username">
+				<input type="password" id="loginPass" placeholder="Password">
+				<button id="loginBtn" class="btn-sell">Login</button>
+			</div>
+			<p id="loginError" class="error-msg"></p>
+		</div>
+	</div>
+
+	<!-- Main Dashboard Content -->
+	<div class="dashboard-wrapper">
+		<!-- Left Side Card: Cash Inflow / Outflow Log -->
+		<section class="card side-card">
+			<h2>Kitchen Cash Log</h2>
+			<p class="subtitle">Cash Inflows &amp; Outflows</p>
+
+			<div class="day-controls">
+				<button id="startDayBtn" class="btn-add">Start Day</button>
+				<button id="endDayBtn" class="btn-sub" disabled>End Day</button>
+			</div>
+
+			<div class="log-summary">
+				<div class="summary-item inflow">
+					<span>Total In</span>
+					<strong id="totalInflow">£0.00</strong>
+				</div>
+				<div class="summary-item outflow">
+					<span>Total Out</span>
+					<strong id="totalOutflow">£0.00</strong>
+				</div>
+			</div>
+
+			<div id="cashLogContainer" class="log-list">
+				<!-- Day boxes will appear here -->
+			</div>
+
+			<button id="resetCashBtn" class="btn-del" style="margin-top: 1rem; width: 100%;">Reset Cashflows</button>
+		</section>
+
+		<!-- Main Dashboard Card -->
+		<main class="card main-card">
+			<h1>Store Dashboard</h1>
+
+			<!-- Cash Tracker Section -->
+			<div class="tracker-section">
+				<h2>Cash Tracker</h2>
+				<div class="total-display">
+					<span id="total">£0.00</span>
+				</div>
+				<div class="controls">
+					<input type="number" id="amountInput" placeholder="Amount" step="0.01">
+					<input type="text" id="reasonInput" placeholder="Reason (e.g. snack restock)">
+					<div class="button-group">
+						<button id="addBtn" class="btn-add">+ Add</button>
+						<button id="subtractBtn" class="btn-sub">- Subtract</button>
+					</div>
+				</div>
+			</div>
+
+			<hr class="divider">
+
+			<!-- Stock Inventory Section -->
+			<div class="tracker-section">
+				<h2>Stock Tracker</h2>
+				<div class="add-item-form">
+					<input type="text" id="newItemInput" placeholder="Item name">
+					<input type="number" id="newItemCost" placeholder="Cost (£)" step="0.01">
+					<button id="addItemBtn">Add</button>
+				</div>
+				<div id="inventoryContainer" class="inventory-grid"></div>
+			</div>
+
+			<hr class="divider">
+
+			<!-- Current Order Section -->
+			<div class="tracker-section">
+				<h2>Current Order</h2>
+				<div id="orderContainer" class="inventory-grid">
+					<!-- Order items will appear here -->
+				</div>
+				<div class="order-total-display">
+					<span>Order Total: </span>
+					<strong id="orderTotal">£0.00</strong>
+				</div>
+				<button id="sellBtn" class="btn-sell">Sell Order</button>
+			</div>
+		</main>
+	</div>
+
+	<script src="Script1.js"></script>
+</body>
+</html>

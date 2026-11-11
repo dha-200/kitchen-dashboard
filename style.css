@@ -1,0 +1,414 @@
+﻿/* Sets a smooth font and centers everything on the screen */
+body {
+	font-family: system-ui, -apple-system, sans-serif;
+	background-color: #f4f7f6;
+	color: #333;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+	margin: 0;
+	padding: 2rem 0;
+}
+
+/* Modal Overlay for Login */
+.modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(15, 23, 42, 0.7);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+}
+
+.modal-card {
+	background: white;
+	padding: 2.5rem;
+	border-radius: 12px;
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+	width: 100%;
+	max-width: 400px;
+	text-align: center;
+	box-sizing: border-box;
+}
+
+.error-msg {
+	color: #dc2626;
+	font-size: 0.85rem;
+	margin-top: 0.75rem;
+	margin-bottom: 0;
+}
+
+/* Wrapper to keep cards aligned with 1.5rem spacing */
+.dashboard-wrapper {
+	display: flex;
+	gap: 1.5rem;
+	align-items: stretch;
+	width: 100%;
+	max-width: 935px;
+	padding: 0 1rem;
+}
+
+/* Both cards share identical dimensions and styling */
+.card {
+	background: white;
+	padding: 2.5rem;
+	border-radius: 12px;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+	width: 100%;
+	max-width: 450px;
+	box-sizing: border-box;
+}
+
+.main-card {
+	text-align: center;
+}
+
+.side-card {
+	text-align: left;
+	display: flex;
+	flex-direction: column;
+}
+
+.subtitle {
+	font-size: 0.9rem;
+	margin-top: -0.5rem;
+	margin-bottom: 1rem;
+}
+
+/* Day Controls */
+.day-controls {
+	display: flex;
+	gap: 0.5rem;
+	margin-bottom: 1rem;
+}
+
+	.day-controls button {
+		flex: 1;
+		padding: 0.5rem;
+		font-size: 0.9rem;
+	}
+
+		.day-controls button:disabled {
+			background-color: #cbd5e1;
+			cursor: not-allowed;
+		}
+
+/* Day Box Container */
+.day-box {
+	background: #f1f5f9;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	padding: 0.75rem;
+	margin-bottom: 0.75rem;
+}
+
+.day-box-header {
+	font-weight: 700;
+	font-size: 0.9rem;
+	color: #1e293b;
+	margin-bottom: 0.5rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom: 1px solid #e2e8f0;
+	padding-bottom: 0.3rem;
+}
+
+.day-box-content {
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+}
+
+/* Cash Log Summary Header */
+.log-summary {
+	display: flex;
+	gap: 0.75rem;
+	margin-bottom: 1rem;
+}
+
+.summary-item {
+	flex: 1;
+	padding: 0.5rem 0.75rem;
+	border-radius: 8px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+	.summary-item span {
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		color: #64748b;
+		font-weight: 600;
+	}
+
+	.summary-item.inflow strong {
+		color: #16a34a;
+		font-size: 1.1rem;
+	}
+
+	.summary-item.outflow strong {
+		color: #dc2626;
+		font-size: 1.1rem;
+	}
+
+/* Scrollable Cash Flow List */
+.log-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	max-height: 380px;
+	overflow-y: auto;
+	padding-right: 0.25rem;
+	flex-grow: 1;
+}
+
+.log-entry {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.5rem 0.6rem;
+	border-radius: 6px;
+	border: 1px solid #e2e8f0;
+	background: #ffffff;
+	font-size: 0.85rem;
+}
+
+	.log-entry.inflow {
+		border-left: 4px solid #16a34a;
+	}
+
+	.log-entry.outflow {
+		border-left: 4px solid #dc2626;
+	}
+
+.log-amount {
+	font-weight: 700;
+}
+
+.log-entry.inflow .log-amount {
+	color: #16a34a;
+}
+
+.log-entry.outflow .log-amount {
+	color: #dc2626;
+}
+
+.log-details {
+	color: #475569;
+	font-size: 0.8rem;
+	text-align: right;
+	word-break: break-word;
+	max-width: 60%;
+}
+
+h1 {
+	color: #1a1a1a;
+	font-size: 1.75rem;
+	margin-bottom: 1.5rem;
+}
+
+h2 {
+	font-size: 1.2rem;
+	color: #333;
+	margin-bottom: 0.75rem;
+}
+
+p {
+	color: #666;
+	margin-bottom: 1.5rem;
+}
+
+.tracker-section {
+	margin-bottom: 1.5rem;
+	text-align: left;
+}
+
+.total-display {
+	background: #f8fafc;
+	padding: 0.75rem;
+	border-radius: 8px;
+	margin-bottom: 0.75rem;
+	border: 1px solid #e2e8f0;
+	text-align: center;
+}
+
+	.total-display span {
+		font-size: 2rem;
+		font-weight: bold;
+		color: #0f172a;
+	}
+
+.controls {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	margin-bottom: 0.75rem;
+}
+
+input[type="number"], input[type="text"], input[type="password"] {
+	width: 100%;
+	padding: 0.65rem;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	font-size: 1rem;
+	outline: none;
+	box-sizing: border-box;
+}
+
+input:focus {
+	border-color: #4f46e5;
+}
+
+.button-group {
+	display: flex;
+	gap: 0.5rem;
+	width: 100%;
+}
+
+	.button-group button, .add-item-form button {
+		flex: 1;
+	}
+
+.divider {
+	border: none;
+	border-top: 1px solid #e2e8f0;
+	margin: 1.5rem 0;
+}
+
+.inventory-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	max-height: 200px;
+	overflow-y: auto;
+}
+
+.item-card {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: #f8fafc;
+	padding: 0.5rem 0.75rem;
+	border-radius: 6px;
+	border: 1px solid #e2e8f0;
+}
+
+.item-name {
+	font-weight: 500;
+	font-size: 0.95rem;
+}
+
+.item-stock {
+	font-size: 0.85rem;
+	color: #64748b;
+	margin-left: 0.5rem;
+}
+
+.item-controls {
+	display: flex;
+	gap: 0.25rem;
+}
+
+	.item-controls button {
+		padding: 0.25rem 0.5rem;
+		font-size: 0.85rem;
+	}
+
+button {
+	background-color: #4f46e5;
+	color: white;
+	border: none;
+	padding: 0.65rem 1rem;
+	font-size: 0.95rem;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+	button:hover {
+		background-color: #4338ca;
+	}
+
+.btn-add {
+	background-color: #16a34a;
+}
+
+	.btn-add:hover {
+		background-color: #15803d;
+	}
+
+.btn-sub {
+	background-color: #dc2626;
+}
+
+	.btn-sub:hover {
+		background-color: #b91c1c;
+	}
+
+.btn-del {
+	background-color: #64748b;
+}
+
+	.btn-del:hover {
+		background-color: #475569;
+	}
+
+.add-item-form {
+	display: flex;
+	gap: 0.5rem;
+	margin-bottom: 0.75rem;
+}
+
+	.add-item-form input[type="text"] {
+		flex: 2;
+	}
+
+	.add-item-form input[type="number"] {
+		flex: 1;
+	}
+
+.btn-order {
+	background-color: #0284c7;
+}
+
+	.btn-order:hover {
+		background-color: #0369a1;
+	}
+
+.order-total-display {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: #f8fafc;
+	padding: 0.75rem 1rem;
+	border-radius: 8px;
+	margin: 0.75rem 0;
+	border: 1px solid #e2e8f0;
+	font-size: 1.1rem;
+}
+
+.btn-sell {
+	width: 100%;
+	background-color: #059669;
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+	.btn-sell:hover {
+		background-color: #047857;
+	}
+
+.empty-msg {
+	color: #94a3b8;
+	font-size: 0.9rem;
+	margin: 0.5rem 0;
+}

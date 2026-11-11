@@ -19,7 +19,6 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
 
-// Document reference in Firestore where our app state will live
 const docRef = doc(db, "storeData", "dashboardState");
 
 // --- Authentication Logic ---
@@ -49,7 +48,6 @@ loginBtn.addEventListener('click', function () {
 loginPass.addEventListener('keypress', function (e) {
     if (e.key === 'Enter') loginBtn.click();
 });
-
 
 // --- State Variables ---
 let totalAmount = 0;
@@ -83,7 +81,6 @@ const orderContainer = document.getElementById('orderContainer');
 const orderTotalDisplay = document.getElementById('orderTotal');
 const sellBtn = document.getElementById('sellBtn');
 
-// --- Sync Data to Cloud Firestore ---
 async function saveData() {
     try {
         await setDoc(docRef, {
@@ -97,7 +94,6 @@ async function saveData() {
     }
 }
 
-// --- Load Data from Cloud Firestore & Listen for Real-Time Updates ---
 function initCloudSync() {
     onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
@@ -469,5 +465,5 @@ sellBtn.addEventListener('click', function () {
     saveData();
 });
 
-// Start the real-time cloud sync listener on load
+// Start real-time sync
 initCloudSync();

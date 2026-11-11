@@ -1,12 +1,13 @@
 // --- Import Firebase SDKs ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-analytics.js";
-import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-database.js";
 
 // --- Firebase Configuration ---
 const firebaseConfig = {
     apiKey: "AIzaSyCsbIKFvr7UKpFZbJpij8pXQ8WpXGT2l6M",
     authDomain: "kitchen-dashboard-d808a.firebaseapp.com",
+    databaseURL: "https://kitchen-dashboard-d808a-default-rtdb.firebaseio.com",
     projectId: "kitchen-dashboard-d808a",
     storageBucket: "kitchen-dashboard-d808a.firebasestorage.app",
     messagingSenderId: "846662260040",
@@ -17,9 +18,10 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
-const db = getFirestore(app);
+const db = getDatabase(app);
 
-const docRef = doc(db, "storeData", "dashboardState");
+// Database reference where our app state will live
+const dbRef = ref(db, 'storeData/dashboardState');
 
 // --- Authentication Logic ---
 const loginModal = document.getElementById('loginModal');
@@ -83,7 +85,7 @@ const sellBtn = document.getElementById('sellBtn');
 
 async function saveData() {
     try {
-        await setDoc(docRef, {
+        await set(dbRef, {
             totalAmount: totalAmount,
             daysLog: daysLog,
             inventory: inventory,
@@ -95,9 +97,9 @@ async function saveData() {
 }
 
 function initCloudSync() {
-    onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists()) {
-            const data = docSnap.data();
+    onValue(dbRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
             totalAmount = data.totalAmount ?? 0;
             daysLog = data.daysLog ?? [];
             inventory = data.inventory ?? inventory;

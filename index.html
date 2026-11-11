@@ -100,7 +100,29 @@
 			</div>
 		</main>
 	</div>
+	<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
 
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyCsbIKFvr7UKpFZbJpij8pXQ8WpXGT2l6M",
+    authDomain: "kitchen-dashboard-d808a.firebaseapp.com",
+    projectId: "kitchen-dashboard-d808a",
+    storageBucket: "kitchen-dashboard-d808a.firebasestorage.app",
+    messagingSenderId: "846662260040",
+    appId: "1:846662260040:web:142989e4d762fd01bbcf7d",
+    measurementId: "G-WNKB89ZCRZ"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
 	<script src="Script1.js"></script>
 </body>
 </html>
